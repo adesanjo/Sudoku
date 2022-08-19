@@ -1,0 +1,27 @@
+from grid import Grid
+
+class Solver:
+    def __init__(self, grid):
+        self.grid = grid
+    
+    def bruteForce(self):
+        self._bruteForce()
+    
+    def _bruteForce(self, r=0, c=0):
+        if not self.grid.isCellValid(r - (c <= 0), c - 1 if c > 0 else 8):
+            return False
+        if r >= 9:
+            return True
+        if self.grid.getCell(r, c).isEmpty():
+            digits = list(range(1, 10))
+            for d in digits:
+                self.grid.getCell(r, c).value = d
+                isGridComplete = self._bruteForce(r + (c >= 8), c + 1 if c < 8 else 0)
+                if isGridComplete:
+                    return True
+                self.grid.getCell(r, c).value = None
+        else:
+            isGridComplete = self._bruteForce(r + (c >= 8), c + 1 if c < 8 else 0)
+            if isGridComplete:
+                return True
+        return False
