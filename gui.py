@@ -14,5 +14,5 @@ class GUI:
     def screenSize(self):
         return (self.screenWidth, self.screenHeight)
     
-    def runGame(self):
-        pass
+    def initGame(self):
+        self.grid.initRandomGrid()

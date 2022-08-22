@@ -9,3 +9,4 @@ if __name__ == "__main__":
     # Solver(grid).bruteForce()
     # print(grid)
     gui = GUI()
+    gui.initGame()
