@@ -39,6 +39,21 @@ class Grid:
         for cell in cellsToEmpty:
             cell.value = None
     
+    def isPartialValid(self):
+        for r in range(9):
+            cells = [cell for i in range(9) if (cell := self.grid[r][i]).isNotEmpty()]
+            if len(cells) != len(set(cells)):
+                return False
+        for c in range(9):
+            cells = [cell for i in range(9) if (cell := self.grid[i][c]).isNotEmpty()]
+            if len(cells) != len(set(cells)):
+                return False
+        for b in range(9):
+            cells = [cell for i in range(9) if (cell := self.grid[b // 3 * 3 + i // 3][b % 3 * 3 + i % 3]).isNotEmpty()]
+            if len(cells) != len(set(cells)):
+                return False
+        return True
+    
     def isValid(self):
         for r in range(9):
             for c in range(9):
@@ -88,8 +103,14 @@ class Cell:
     def isEmpty(self):
         return self.value is None
     
+    def isNotEmpty(self):
+        return self.value is not None
+    
     def __str__(self):
         return str(self.value) if self.value is not None else " "
+    
+    def __hash__(self):
+        return hash(self.value)
     
     def __eq__(self, other):
         if not isinstance(other, Cell):

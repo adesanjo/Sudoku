@@ -5,9 +5,9 @@ class Solver:
         self.grid = grid
     
     def bruteForce(self):
-        self._bruteForce()
+        self._bruteForce(0, 0)
     
-    def _bruteForce(self, r=0, c=0):
+    def _bruteForce(self, r, c):
         if not self.grid.isCellValid(r - (c <= 0), c - 1 if c > 0 else 8):
             return False
         if r >= 9:
