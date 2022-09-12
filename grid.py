@@ -155,6 +155,18 @@ class Xsum(DominoConstraint):
             return True
         return self.cellA.value + self.cellB.value == 10
 
+class KropkiWhite(DominoConstraint):
+    def isValid(self):
+        if self.cellA.isEmpty() or self.cellB.isEmpty():
+            return True
+        return abs(self.cellA.value - self.cellB.value) == 1
+
+class KropkiBlack(DominoConstraint):
+    def isValid(self):
+        if self.cellA.isEmpty() or self.cellB.isEmpty():
+            return True
+        return self.cellA.value / self.cellB.value in [0.5, 2]
+
 class PathConstraint(Constraint):
     def __init__(self, cells: list[Cell]):
         self.cells = cells
