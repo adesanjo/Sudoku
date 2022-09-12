@@ -1,6 +1,5 @@
 from grid import Grid
 from solver import Solver
-from gui import GUI
 
 if __name__ == "__main__":
     grid = Grid()
@@ -8,5 +7,3 @@ if __name__ == "__main__":
     print(grid)
     Solver(grid).bruteForce()
     print(grid)
-    # gui = GUI()
-    # gui.initGame()
