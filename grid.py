@@ -36,6 +36,9 @@ class Grid:
     
     def initRandomGrid(self, portionFilled=0.5):
         self.initFullRandomGrid()
+        self.removeRandomCells(portionFilled)
+    
+    def removeRandomCells(self, portionFilled=0.5):
         cellsToEmpty = random.sample(self.flattenedGrid(), round(81 * (1 - portionFilled)))
         for cell in cellsToEmpty:
             cell.value = None
