@@ -1,7 +1,7 @@
 from grid import Grid
 
 class Solver:
-    def __init__(self, grid):
+    def __init__(self, grid: Grid):
         self.grid = grid
     
     def bruteForce(self):

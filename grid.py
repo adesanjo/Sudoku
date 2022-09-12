@@ -13,6 +13,7 @@ class Grid:
     
     def initEmptyGrid(self):
         self.grid = [[Cell() for _ in range(9)] for _ in range(9)]
+        self.constraints: list[Constraint] = []
     
     def initFullRandomGrid(self):
         self.initEmptyGrid()
@@ -59,6 +60,9 @@ class Grid:
             for c in range(9):
                 if not self.isCellValid(r, c):
                     return False
+        for constraint in self.constraints:
+            if not constraint.isValid():
+                return False
         return True
     
     def isCellValid(self, r, c):
@@ -116,3 +120,61 @@ class Cell:
         if not isinstance(other, Cell):
             return False
         return self.value == other.value
+
+class Constraint:
+    def isValid(self):
+        raise NotImplemented
+
+class GeneralConstraint(Constraint):
+    def __init__(self, grid: Grid):
+        self.grid = grid
+
+class KnightsMove(GeneralConstraint):
+    def isValid(self):
+        for r in range(9):
+            for c in range(9):
+                for dr, dc in [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]:
+                    if 0 <= r + dr < 9 and 0 <= c + dc < 9 and self.grid.getCell(r, c) == self.grid.getCell(r + dr, c + dc):
+                        return False
+        return True
+
+class DominoConstraint(Constraint):
+    def __init__(self, cellA: Cell, cellB: Cell):
+        self.cellA = cellA
+        self.cellB = cellB
+
+class Vsum(DominoConstraint):
+    def isValid(self):
+        if self.cellA.isEmpty() or self.cellB.isEmpty():
+            return True
+        return self.cellA.value + self.cellB.value == 5
+
+class Xsum(DominoConstraint):
+    def isValid(self):
+        if self.cellA.isEmpty() or self.cellB.isEmpty():
+            return True
+        return self.cellA.value + self.cellB.value == 10
+
+class PathConstraint(Constraint):
+    def __init__(self, cells: list[Cell]):
+        self.cells = cells
+
+class Thermometer(PathConstraint):
+    def isValid(self):
+        lastValue = 0
+        for cell in self.cells:
+            if cell.isNotEmpty():
+                if cell.calue <= lastValue:
+                    return False
+                lastValue = cell.value
+        return True
+
+class Arrow(PathConstraint):
+    def isValid(self):
+        if len(self.cells) < 2:
+            return True
+        sumValue = self.cells[0].value
+        arrowCells = self.cells[1:]
+        if any(cell.isEmpty() for cell in arrowCells):
+            return True
+        return sum(map(lambda c: c.value, arrowCells)) == sumValue
