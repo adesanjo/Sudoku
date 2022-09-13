@@ -20,6 +20,7 @@ class Grid:
         self._genFullRandomGrid()
     
     def _genFullRandomGrid(self, r=0, c=0):
+        print(self)
         if not self.isCellValid(r - (c <= 0), c - 1 if c > 0 else 8):
             return False
         if r >= 9:
@@ -56,26 +57,26 @@ class Grid:
                 constraintType = random.choice(PathConstraint.allTypes())
                 r = random.randrange(9)
                 c = random.randrange(9)
-                cellA = self.grid[r][c]
-                dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1)])
+                cells = [self.grid[r][c]]
+                dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)])
                 if not (0 <= r + dr < 9 and 0 <= c + dc < 9):
                     dr = -dr
                     dc = -dc
-                cellB = self.grid[r + dr][c + dc]
-                args = (cellA, cellB)
+                cells.append(self.grid[(r := r + dr)][(c := c + dc)])
+                n = random.randrange(8)
+                triesLeft = 50
+                while n > 0 and triesLeft > 0:
+                    triesLeft -= 1
+                    dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)])
+                    if 0 <= r + dr < 9 and 0 <= c + dc < 9 and self.grid[r + dr][c + dc] not in cells:
+                        cells.append(self.grid[(r := r + dr)][(c := c + dc)])
+                        n -= 1
+                args = (cells,)
             else:
                 constraintType = random.choice(GeneralConstraint.allTypes())
-                r = random.randrange(9)
-                c = random.randrange(9)
-                cellA = self.grid[r][c]
-                dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1)])
-                if not (0 <= r + dr < 9 and 0 <= c + dc < 9):
-                    dr = -dr
-                    dc = -dc
-                cellB = self.grid[r + dr][c + dc]
-                args = (cellA, cellB)
+                args = (self,)
             constraint = constraintType(*args)
-            self.grid.constraints.append(constraint)
+            self.constraints.append(constraint)
         self._genFullRandomGrid()
         self.removeRandomCells(portionFilled)
     
@@ -136,6 +137,8 @@ class Grid:
                     for c in range(rc * 3, rc * 3 + 3):
                         res += " " + str(self.grid[r][c]) + " |" + " " * (c % 3 == 2 and rc < 2)
                 res += "\n" + " ".join(["-" * 13] * 3) + "\n"
+        nl = "\n"
+        res += f"\n{nl.join(str(constraint) for constraint in self.constraints)}\n"
         return res
 
 class Cell:
@@ -160,6 +163,10 @@ class Cell:
     @property
     def c(self):
         return self._c
+    
+    @property
+    def pos(self):
+        return (self.r, self.c)
     
     def isEmpty(self):
         return self.value is None
@@ -188,6 +195,9 @@ class Constraint:
     
     def isValid(self):
         raise NotImplemented
+    
+    def __str__(self):
+        return self.__class__.__name__
 
 class GeneralConstraint(Constraint):
     def __init__(self, grid: Grid):
@@ -223,6 +233,9 @@ class DominoConstraint(Constraint):
     
     def isCellValid(self, cell: Cell):
         return cell not in [self.cellA, self.cellB] or self.isValid()
+    
+    def __str__(self):
+        return f"{self.__class__.__name__}({self.cellA.pos}, {self.cellB.pos})"
 
 class Vsum(DominoConstraint):
     def isValid(self):
@@ -258,6 +271,9 @@ class PathConstraint(Constraint):
     
     def isCellValid(self, cell: Cell):
         return cell not in self.cells or self.isValid()
+    
+    def __str__(self):
+        return f"{self.__class__.__name__}({', '.join(str(cell.pos) for cell in self.cells)})"
 
 class Thermometer(PathConstraint):
     def isValid(self):
