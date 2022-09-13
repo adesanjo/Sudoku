@@ -12,7 +12,7 @@ class Grid:
         return [self.grid[r][c] for r in range(9) for c in range(9)]
     
     def initEmptyGrid(self):
-        self.grid = [[Cell() for _ in range(9)] for _ in range(9)]
+        self.grid = [[Cell(r=r, c=c) for c in range(9)] for r in range(9)]
         self.constraints: list[Constraint] = []
     
     def initFullRandomGrid(self):
@@ -68,7 +68,7 @@ class Grid:
                 return False
         return True
     
-    def isCellValid(self, r, c):
+    def isCellValid(self, r: int, c: int):
         if r < 0:
             return True
         cell = self.grid[r][c]
@@ -80,6 +80,9 @@ class Grid:
             return False
         if [self.grid[r // 3 * 3 + i // 3][c // 3 * 3 + i % 3] for i in range(9)].count(cell) > 1:
             return False
+        for constraint in self.constraints:
+            if not constraint.isCellValid(self.grid[r][c]):
+                return False
         return True
     
     def __str__(self):
@@ -95,8 +98,10 @@ class Grid:
         return res
 
 class Cell:
-    def __init__(self, value=None):
+    def __init__(self, value=None, r=0, c=0):
         self._value = value
+        self._r = r
+        self._c = c
 
     @property
     def value(self):
@@ -106,6 +111,14 @@ class Cell:
     def value(self, value):
         if value in [None] + list(range(1, 10)):
             self._value = value
+
+    @property
+    def r(self):
+        return self._r
+
+    @property
+    def c(self):
+        return self._c
     
     def isEmpty(self):
         return self.value is None
@@ -125,6 +138,9 @@ class Cell:
         return self.value == other.value
 
 class Constraint:
+    def isCellValid(self, cell: Cell):
+        raise NotImplemented
+    
     def isValid(self):
         raise NotImplemented
 
@@ -133,18 +149,27 @@ class GeneralConstraint(Constraint):
         self.grid = grid
 
 class KnightsMove(GeneralConstraint):
+    def isCellValid(self, cell: Cell):
+        r, c = cell.r, cell.c
+        for dr, dc in [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]:
+            if 0 <= r + dr < 9 and 0 <= c + dc < 9 and cell == self.grid.getCell(r + dr, c + dc):
+                return False
+        return True
+    
     def isValid(self):
         for r in range(9):
             for c in range(9):
-                for dr, dc in [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]:
-                    if 0 <= r + dr < 9 and 0 <= c + dc < 9 and self.grid.getCell(r, c) == self.grid.getCell(r + dr, c + dc):
-                        return False
+                if not self.isCellValid(self.grid.getCell(r, c)):
+                    return False
         return True
 
 class DominoConstraint(Constraint):
     def __init__(self, cellA: Cell, cellB: Cell):
         self.cellA = cellA
         self.cellB = cellB
+    
+    def isCellValid(self, cell: Cell):
+        return cell not in [self.cellA, self.cellB] or self.isValid()
 
 class Vsum(DominoConstraint):
     def isValid(self):
@@ -173,6 +198,9 @@ class KropkiBlack(DominoConstraint):
 class PathConstraint(Constraint):
     def __init__(self, cells: list[Cell]):
         self.cells = cells
+    
+    def isCellValid(self, cell: Cell):
+        return cell not in self.cells or self.isValid()
 
 class Thermometer(PathConstraint):
     def isValid(self):
