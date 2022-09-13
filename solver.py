@@ -5,7 +5,9 @@ class Solver:
         self.grid = grid
     
     def bruteForce(self):
-        self._bruteForce(0, 0)
+        isGridComplete = self._bruteForce(0, 0)
+        if not isGridComplete:
+            print("Sudoku has no solution")
     
     def _bruteForce(self, r, c):
         if not self.grid.isCellValid(r - (c <= 0), c - 1 if c > 0 else 8):

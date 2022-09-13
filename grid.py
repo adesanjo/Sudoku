@@ -38,6 +38,47 @@ class Grid:
         self.initFullRandomGrid()
         self.removeRandomCells(portionFilled)
     
+    def initRandomGridWithConstraints(self, portionFilled=0.5, maxConstraints=1):
+        self.initEmptyGrid()
+        for _ in range(1, random.randint(1, maxConstraints) + 1):
+            if random.randrange(3) != 0:
+                constraintType = random.choice(DominoConstraint.allTypes())
+                r = random.randrange(9)
+                c = random.randrange(9)
+                cellA = self.grid[r][c]
+                dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1)])
+                if not (0 <= r + dr < 9 and 0 <= c + dc < 9):
+                    dr = -dr
+                    dc = -dc
+                cellB = self.grid[r + dr][c + dc]
+                args = (cellA, cellB)
+            elif random.randrange(3) != 0:
+                constraintType = random.choice(PathConstraint.allTypes())
+                r = random.randrange(9)
+                c = random.randrange(9)
+                cellA = self.grid[r][c]
+                dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1)])
+                if not (0 <= r + dr < 9 and 0 <= c + dc < 9):
+                    dr = -dr
+                    dc = -dc
+                cellB = self.grid[r + dr][c + dc]
+                args = (cellA, cellB)
+            else:
+                constraintType = random.choice(GeneralConstraint.allTypes())
+                r = random.randrange(9)
+                c = random.randrange(9)
+                cellA = self.grid[r][c]
+                dr, dc = random.choice([(1, 0), (0, 1), (-1, 0), (0, -1)])
+                if not (0 <= r + dr < 9 and 0 <= c + dc < 9):
+                    dr = -dr
+                    dc = -dc
+                cellB = self.grid[r + dr][c + dc]
+                args = (cellA, cellB)
+            constraint = constraintType(*args)
+            self.grid.constraints.append(constraint)
+        self._genFullRandomGrid()
+        self.removeRandomCells(portionFilled)
+    
     def removeRandomCells(self, portionFilled=0.5):
         cellsToEmpty = random.sample(self.flattenedGrid(), round(81 * (1 - portionFilled)))
         for cell in cellsToEmpty:
@@ -138,6 +179,10 @@ class Cell:
         return self.value == other.value
 
 class Constraint:
+    @staticmethod
+    def allTypes() -> list[type]:
+        return GeneralConstraint.allTypes() + DominoConstraint.allTypes() + PathConstraint.allTypes()
+    
     def isCellValid(self, cell: Cell):
         raise NotImplemented
     
@@ -147,6 +192,10 @@ class Constraint:
 class GeneralConstraint(Constraint):
     def __init__(self, grid: Grid):
         self.grid = grid
+    
+    @staticmethod
+    def allTypes() -> list[type]:
+        return [KnightsMove]
 
 class KnightsMove(GeneralConstraint):
     def isCellValid(self, cell: Cell):
@@ -167,6 +216,10 @@ class DominoConstraint(Constraint):
     def __init__(self, cellA: Cell, cellB: Cell):
         self.cellA = cellA
         self.cellB = cellB
+    
+    @staticmethod
+    def allTypes() -> list[type]:
+        return [Vsum, Xsum, KropkiWhite, KropkiBlack]
     
     def isCellValid(self, cell: Cell):
         return cell not in [self.cellA, self.cellB] or self.isValid()
@@ -198,6 +251,10 @@ class KropkiBlack(DominoConstraint):
 class PathConstraint(Constraint):
     def __init__(self, cells: list[Cell]):
         self.cells = cells
+    
+    @staticmethod
+    def allTypes() -> list[type]:
+        return [Thermometer, Arrow]
     
     def isCellValid(self, cell: Cell):
         return cell not in self.cells or self.isValid()
