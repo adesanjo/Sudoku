@@ -83,6 +83,9 @@ class Grid:
         cellsToEmpty = random.sample(self.flattenedGrid(), round(81 * (1 - portionFilled)))
         for cell in cellsToEmpty:
             cell.value = None
+        for cell in self.flattenedGrid():
+            if cell.value is not None:
+                cell.locked = True
     
     def isPartialValid(self):
         for r in range(9):
@@ -145,6 +148,7 @@ class Cell:
         self._value = value
         self._r = r
         self._c = c
+        self._locked = False
 
     @property
     def value(self):
@@ -166,6 +170,15 @@ class Cell:
     @property
     def pos(self):
         return (self.r, self.c)
+
+    @property
+    def locked(self):
+        return self._locked
+    
+    @locked.setter
+    def locked(self, locked):
+        if isinstance(locked, bool):
+            self._locked = locked
     
     def isEmpty(self):
         return self.value is None
