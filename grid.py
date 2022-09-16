@@ -20,7 +20,6 @@ class Grid:
         self._genFullRandomGrid()
     
     def _genFullRandomGrid(self, r=0, c=0):
-        print(self)
         if not self.isCellValid(r - (c <= 0), c - 1 if c > 0 else 8):
             return False
         if r >= 9:
