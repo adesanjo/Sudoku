@@ -11,6 +11,7 @@ WHITE = 255, 255, 255
 BLACK = 0, 0, 0
 BLUE = 0, 0, 200
 SELECTED_COLOR = 255, 255, 200
+SELECTED_BORDER_COLOR = 0, 100, 255
 
 NUM_KEYS = {
     pg.K_KP1: 1,
@@ -147,11 +148,11 @@ class GUI:
     def render(self):
         self.screen.fill(WHITE)
 
-        for cell in self.selectedCells:
-            x = (SIZE - 20) * cell.c / 9 + 10
-            y = (SIZE - 20) * cell.r / 9 + 10
-            s = (SIZE - 20) / 9
-            pg.draw.rect(self.screen, SELECTED_COLOR, pg.Rect(x, y, s, s))
+        # for cell in self.selectedCells:
+        #     x = (SIZE - 20) * cell.c / 9 + 10
+        #     y = (SIZE - 20) * cell.r / 9 + 10
+        #     s = (SIZE - 20) / 9
+        #     pg.draw.rect(self.screen, SELECTED_COLOR, pg.Rect(x, y, s, s))
 
         for i in range(10):
             x = y = (SIZE - 20) * i / 9 + 10
@@ -180,5 +181,14 @@ class GUI:
                     textRect.size = ((SIZE - 20) / 9 - 10, (SIZE - 20) / 9 - 10)
                     textRect.center = (x, y)
                     self.screen.blit(text, textRect)
+
+        for cell in self.selectedCells:
+            x = (SIZE - 20) * cell.c / 9 + 10
+            y = (SIZE - 20) * cell.r / 9 + 10
+            s = (SIZE - 20) / 9
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y), (x + s, y))
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y), (x, y + s))
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x + s, y), (x + s, y + s))
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y + s), (x + s, y + s))
 
         pg.display.flip()
