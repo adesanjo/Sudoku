@@ -195,7 +195,7 @@ class Cell:
     def __eq__(self, other):
         if not isinstance(other, Cell):
             return False
-        return self.value == other.value
+        return self.pos == other.pos and self.locked == other.locked and self.value == other.value
 
 class Constraint:
     @staticmethod
@@ -223,7 +223,7 @@ class KnightsMove(GeneralConstraint):
     def isCellValid(self, cell: Cell):
         r, c = cell.r, cell.c
         for dr, dc in [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]:
-            if 0 <= r + dr < 9 and 0 <= c + dc < 9 and cell == self.grid.getCell(r + dr, c + dc):
+            if 0 <= r + dr < 9 and 0 <= c + dc < 9 and cell.value == self.grid.getCell(r + dr, c + dc).value:
                 return False
         return True
     

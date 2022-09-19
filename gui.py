@@ -1,3 +1,6 @@
+from typing import Literal
+
+from select import select
 import pygame as pg
 
 from grid import Grid, Cell
@@ -9,12 +12,25 @@ BLACK = 0, 0, 0
 BLUE = 0, 0, 200
 SELECTED_COLOR = 255, 255, 200
 
+NUM_KEYS = {
+    pg.K_KP1: 1,
+    pg.K_KP2: 2,
+    pg.K_KP3: 3,
+    pg.K_KP4: 4,
+    pg.K_KP5: 5,
+    pg.K_KP6: 6,
+    pg.K_KP7: 7,
+    pg.K_KP8: 8,
+    pg.K_KP9: 9,
+}
+
 class GUI:
     def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((SIZE, SIZE))
         self.grid = Grid()
-        self.selectedCell: Cell | None = None
+        self.selectedCells: list[Cell] = []
+        self.mouseAction: Literal["select"] | Literal["deselect"] | None = None
         self.font = pg.font.SysFont("Helvetica", SIZE // 20)
         self.initGrid()
     
@@ -24,11 +40,13 @@ class GUI:
     def run(self):
         running = True
         while running:
+            modKeys = pg.key.get_mods()
             for e in pg.event.get():
                 if e.type == pg.QUIT:
                     running = False
                     break
                 if e.type == pg.MOUSEBUTTONDOWN:
+                    print("mouse down")
                     mx, my = pg.mouse.get_pos()
                     r = (my - 10) * 9 // (SIZE - 20)
                     c = (mx - 10) * 9 // (SIZE - 20)
@@ -36,17 +54,57 @@ class GUI:
                         clickedCell = self.grid.getCell(r, c)
                     else:
                         clickedCell = None
-                    if clickedCell is None or (self.selectedCell is not None and clickedCell.pos == self.selectedCell.pos):
-                        self.selectedCell = None
+                    if clickedCell is None:
+                        if self.mouseAction is None:
+                            self.mouseAction = "deselect"
+                        self.selectedCells.clear()
+                    elif modKeys & (pg.KMOD_SHIFT | pg.KMOD_CTRL):
+                        if clickedCell in self.selectedCells:
+                            if self.mouseAction is None:
+                                self.mouseAction = "deselect"
+                            self.selectedCells.remove(clickedCell)
                     else:
-                        self.selectedCell = clickedCell
-                elif e.type == pg.KEYDOWN:
-                    keys = [pg.K_KP1, pg.K_KP2, pg.K_KP3, pg.K_KP4, pg.K_KP5, pg.K_KP6, pg.K_KP7, pg.K_KP8, pg.K_KP9]
-                    if e.key in keys and not self.selectedCell.locked:
-                        if self.selectedCell.value == keys.index(e.key) + 1:
-                            self.selectedCell.value = None
+                        if clickedCell in self.selectedCells:
+                            if len(self.selectedCells) > 1:
+                                if self.mouseAction is None:
+                                    self.mouseAction = "select"
+                                self.selectedCells.clear()
+                                self.selectedCells.append(clickedCell)
+                            else:
+                                if self.mouseAction is None:
+                                    self.mouseAction = "deselect"
+                                self.selectedCells.clear()
                         else:
-                            self.selectedCell.value = keys.index(e.key) + 1
+                            if self.mouseAction is None:
+                                self.mouseAction = "select"
+                            self.selectedCells.clear()
+                            self.selectedCells.append(clickedCell)
+                elif e.type == pg.MOUSEBUTTONUP:
+                    self.mouseAction = None
+                elif e.type == pg.MOUSEMOTION:
+                    mx, my = pg.mouse.get_pos()
+                    r = (my - 10) * 9 // (SIZE - 20)
+                    c = (mx - 10) * 9 // (SIZE - 20)
+                    if 0 <= r < 9 and 0 <= c < 9:
+                        clickedCell = self.grid.getCell(r, c)
+                    else:
+                        clickedCell = None
+                    if clickedCell is not None:
+                        if self.mouseAction == "select" and clickedCell not in self.selectedCells:
+                            self.selectedCells.append(clickedCell)
+                        elif self.mouseAction == "deselect" and clickedCell in self.selectedCells:
+                            self.selectedCells.remove(clickedCell)
+                elif e.type == pg.KEYDOWN:
+                    if e.key in NUM_KEYS:
+                        num = NUM_KEYS[e.key]
+                        if any(cell.value == num for cell in self.selectedCells if not cell.locked):
+                            for cell in self.selectedCells:
+                                if not cell.locked and cell.value == num:
+                                    cell.value = None
+                        else:
+                            for cell in self.selectedCells:
+                                if not cell.locked:
+                                    cell.value = num
             if not running:
                 break
             self.update()
@@ -58,9 +116,9 @@ class GUI:
     def render(self):
         self.screen.fill(WHITE)
 
-        if self.selectedCell is not None:
-            x = (SIZE - 20) * self.selectedCell.c / 9 + 10
-            y = (SIZE - 20) * self.selectedCell.r / 9 + 10
+        for cell in self.selectedCells:
+            x = (SIZE - 20) * cell.c / 9 + 10
+            y = (SIZE - 20) * cell.r / 9 + 10
             s = (SIZE - 20) / 9
             pg.draw.rect(self.screen, SELECTED_COLOR, pg.Rect(x, y, s, s))
 
