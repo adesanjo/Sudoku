@@ -46,7 +46,6 @@ class GUI:
                     running = False
                     break
                 if e.type == pg.MOUSEBUTTONDOWN:
-                    print("mouse down")
                     mx, my = pg.mouse.get_pos()
                     r = (my - 10) * 9 // (SIZE - 20)
                     c = (mx - 10) * 9 // (SIZE - 20)
@@ -63,6 +62,10 @@ class GUI:
                             if self.mouseAction is None:
                                 self.mouseAction = "deselect"
                             self.selectedCells.remove(clickedCell)
+                        else:
+                            if self.mouseAction is None:
+                                self.mouseAction = "select"
+                            self.selectedCells.append(clickedCell)
                     else:
                         if clickedCell in self.selectedCells:
                             if len(self.selectedCells) > 1:
