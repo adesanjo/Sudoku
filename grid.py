@@ -145,10 +145,12 @@ class Grid:
 
 class Cell:
     def __init__(self, value=None, r=0, c=0):
-        self._value = value
-        self._r = r
-        self._c = c
-        self._locked = False
+        self._value: int | None = value
+        self._r: int = r
+        self._c: int = c
+        self._locked: bool = False
+        self._centerMarks: list[int] = []
+        self._cornerMarks: list[int] = []
 
     @property
     def value(self):
@@ -179,6 +181,16 @@ class Cell:
     def locked(self, locked):
         if isinstance(locked, bool):
             self._locked = locked
+
+    @property
+    def centerMarks(self):
+        self._centerMarks.sort()
+        return self._centerMarks
+
+    @property
+    def cornerMarks(self):
+        self._cornerMarks.sort()
+        return self._cornerMarks
     
     def isEmpty(self):
         return self.value is None
@@ -189,13 +201,13 @@ class Cell:
     def __str__(self):
         return str(self.value) if self.value is not None else " "
     
-    def __hash__(self):
-        return hash(self.value)
+    # def __hash__(self):
+    #     return hash((self.pos, self.locked, self.value))
     
-    def __eq__(self, other):
-        if not isinstance(other, Cell):
-            return False
-        return self.pos == other.pos and self.locked == other.locked and self.value == other.value
+    # def __eq__(self, other):
+    #     if not isinstance(other, Cell):
+    #         return False
+    #     return self.pos == other.pos and self.locked == other.locked and self.value == other.value and self.centerMarks == other.centerMarks and self.cornerMarks == other.cornerMarks
 
 class Constraint:
     @staticmethod

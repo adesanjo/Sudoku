@@ -31,7 +31,10 @@ class GUI:
         self.grid = Grid()
         self.selectedCells: list[Cell] = []
         self.mouseAction: Literal["select"] | Literal["deselect"] | None = None
+        self.isCenterMark = False
+        self.isCornerMark = False
         self.font = pg.font.SysFont("Helvetica", SIZE // 20)
+        self.smallFont = pg.font.SysFont("Helvetica", SIZE // 45)
         self.initGrid()
     
     def initGrid(self):
@@ -40,7 +43,6 @@ class GUI:
     def run(self):
         running = True
         while running:
-            modKeys = pg.key.get_mods()
             for e in pg.event.get():
                 if e.type == pg.QUIT:
                     running = False
@@ -57,7 +59,7 @@ class GUI:
                         if self.mouseAction is None:
                             self.mouseAction = "deselect"
                         self.selectedCells.clear()
-                    elif modKeys & (pg.KMOD_SHIFT | pg.KMOD_CTRL):
+                    elif self.isCenterMark or self.isCornerMark:
                         if clickedCell in self.selectedCells:
                             if self.mouseAction is None:
                                 self.mouseAction = "deselect"
@@ -98,16 +100,42 @@ class GUI:
                         elif self.mouseAction == "deselect" and clickedCell in self.selectedCells:
                             self.selectedCells.remove(clickedCell)
                 elif e.type == pg.KEYDOWN:
+                    self.isCenterMark = self.isCenterMark or e.key == pg.K_LCTRL
+                    self.isCornerMark = self.isCornerMark or e.key == pg.K_LALT
                     if e.key in NUM_KEYS:
                         num = NUM_KEYS[e.key]
-                        if any(cell.value == num for cell in self.selectedCells if not cell.locked):
-                            for cell in self.selectedCells:
-                                if not cell.locked and cell.value == num:
-                                    cell.value = None
+                        if self.isCenterMark:
+                            if not all(num in cell.centerMarks for cell in self.selectedCells if not cell.locked):
+                                for cell in self.selectedCells:
+                                    if not cell.locked and num not in cell.centerMarks:
+                                        cell.centerMarks.append(num)
+                            else:
+                                for cell in self.selectedCells:
+                                    if not cell.locked and num in cell.centerMarks:
+                                        cell.centerMarks.remove(num)
+                        elif self.isCornerMark:
+                            if not all(num in cell.cornerMarks for cell in self.selectedCells if not cell.locked):
+                                for cell in self.selectedCells:
+                                    if not cell.locked and num not in cell.cornerMarks:
+                                        cell.cornerMarks.append(num)
+                            else:
+                                for cell in self.selectedCells:
+                                    if not cell.locked and num in cell.cornerMarks:
+                                        cell.cornerMarks.remove(num)
                         else:
-                            for cell in self.selectedCells:
-                                if not cell.locked:
-                                    cell.value = num
+                            if not all(cell.value == num for cell in self.selectedCells if not cell.locked):
+                                for cell in self.selectedCells:
+                                    if not cell.locked:
+                                        cell.value = num
+                            else:
+                                for cell in self.selectedCells:
+                                    if not cell.locked and cell.value == num:
+                                        cell.value = None
+                elif e.type == pg.KEYUP:
+                    if e.key == pg.K_LCTRL:
+                        self.isCenterMark = False
+                    if e.key == pg.K_LALT:
+                        self.isCornerMark = False
             if not running:
                 break
             self.update()
@@ -136,9 +164,21 @@ class GUI:
                 cell = self.grid.getCell(r, c)
                 x = (SIZE - 20) * c / 9 + 10 + (SIZE - 20) / 18
                 y = (SIZE - 20) * r / 9 + 10 + (SIZE - 20) / 18
-                text = self.font.render(str(cell), True, BLACK if cell.locked else BLUE)
-                textRect = text.get_rect()
-                textRect.center = (x, y)
-                self.screen.blit(text, textRect)
+                if cell.value is not None:
+                    text = self.font.render(str(cell.value), True, BLACK if cell.locked else BLUE)
+                    textRect = text.get_rect()
+                    textRect.center = (x, y)
+                    self.screen.blit(text, textRect)
+                else:
+                    text = self.smallFont.render("".join(map(str, cell.centerMarks)), True, BLACK if cell.locked else BLUE)
+                    textRect = text.get_rect()
+                    textRect.center = (x, y)
+                    self.screen.blit(text, textRect)
+
+                    text = self.smallFont.render("".join(map(str, cell.cornerMarks)), True, BLACK if cell.locked else BLUE)
+                    textRect = text.get_rect()
+                    textRect.size = ((SIZE - 20) / 9 - 10, (SIZE - 20) / 9 - 10)
+                    textRect.center = (x, y)
+                    self.screen.blit(text, textRect)
 
         pg.display.flip()
