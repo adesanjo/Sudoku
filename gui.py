@@ -3,14 +3,15 @@ from typing import Literal
 from select import select
 import pygame as pg
 
-from grid import Grid, Cell
+from grid import *
 
 SIZE = 600
 
 WHITE = 255, 255, 255
 BLACK = 0, 0, 0
 BLUE = 0, 0, 200
-SELECTED_COLOR = 255, 255, 200
+# SELECTED_COLOR = 255, 255, 200
+SELECTED_COLOR = 220, 250, 250
 SELECTED_BORDER_COLOR = 0, 100, 255
 
 NUM_KEYS = {
@@ -39,7 +40,18 @@ class GUI:
         self.initGrid()
     
     def initGrid(self):
-        self.grid.initRandomGrid(0.4)
+        # self.grid.initRandomGrid(0.4)
+        self.grid.initEmptyGrid()
+        self.grid.constraints.append(Vsum(self.grid.getCell(0, 0), self.grid.getCell(0, 1)))
+        self.grid.constraints.append(Vsum(self.grid.getCell(0, 2), self.grid.getCell(1, 2)))
+        self.grid.constraints.append(Xsum(self.grid.getCell(2, 0), self.grid.getCell(2, 1)))
+        self.grid.constraints.append(Xsum(self.grid.getCell(2, 2), self.grid.getCell(3, 2)))
+        self.grid.constraints.append(KropkiWhite(self.grid.getCell(0, 3), self.grid.getCell(0, 4)))
+        self.grid.constraints.append(KropkiWhite(self.grid.getCell(0, 5), self.grid.getCell(1, 5)))
+        self.grid.constraints.append(KropkiBlack(self.grid.getCell(2, 3), self.grid.getCell(2, 4)))
+        self.grid.constraints.append(KropkiBlack(self.grid.getCell(2, 5), self.grid.getCell(3, 5)))
+        # self.grid._genFullRandomGrid()
+        # self.grid.removeRandomCells(0.4)
     
     def run(self):
         running = True
@@ -148,17 +160,20 @@ class GUI:
     def render(self):
         self.screen.fill(WHITE)
 
-        # for cell in self.selectedCells:
-        #     x = (SIZE - 20) * cell.c / 9 + 10
-        #     y = (SIZE - 20) * cell.r / 9 + 10
-        #     s = (SIZE - 20) / 9
-        #     pg.draw.rect(self.screen, SELECTED_COLOR, pg.Rect(x, y, s, s))
+        for cell in self.selectedCells:
+            x = (SIZE - 20) * cell.c / 9 + 10
+            y = (SIZE - 20) * cell.r / 9 + 10
+            s = (SIZE - 20) / 9
+            pg.draw.rect(self.screen, SELECTED_COLOR, pg.Rect(x, y, s, s))
 
         for i in range(10):
             x = y = (SIZE - 20) * i / 9 + 10
             w = 9 if i % 3 == 0 else 5
             pg.draw.line(self.screen, BLACK, (x, 10), (x, SIZE - 10), w)
             pg.draw.line(self.screen, BLACK, (10, y), (SIZE - 10, y), w)
+        
+        for constraint in self.grid.constraints:
+            self.renderConstraint(constraint)
         
         for r in range(9):
             for c in range(9):
@@ -186,9 +201,36 @@ class GUI:
             x = (SIZE - 20) * cell.c / 9 + 10
             y = (SIZE - 20) * cell.r / 9 + 10
             s = (SIZE - 20) / 9
-            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y), (x + s, y))
-            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y), (x, y + s))
-            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x + s, y), (x + s, y + s))
-            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y + s), (x + s, y + s))
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y), (x + s, y), 10)
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y), (x, y + s), 10)
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x + s, y), (x + s, y + s), 10)
+            pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y + s), (x + s, y + s), 10)
 
         pg.display.flip()
+    
+    def renderConstraint(self, constraint):
+        if isinstance(constraint, GeneralConstraint):
+            return
+        elif isinstance(constraint, Vsum):
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            text = self.smallFont.render("V", True, BLACK, WHITE)
+            textRect = text.get_rect()
+            textRect.center = (x, y)
+            self.screen.blit(text, textRect)
+        elif isinstance(constraint, Xsum):
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            text = self.smallFont.render("X", True, BLACK, WHITE)
+            textRect = text.get_rect()
+            textRect.center = (x, y)
+            self.screen.blit(text, textRect)
+        elif isinstance(constraint, KropkiWhite):
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            pg.draw.circle(self.screen, BLACK, (x, y), 9)
+            pg.draw.circle(self.screen, WHITE, (x, y), 7)
+        elif isinstance(constraint, KropkiBlack):
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            pg.draw.circle(self.screen, BLACK, (x, y), 8)
