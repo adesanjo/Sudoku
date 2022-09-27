@@ -13,6 +13,7 @@ BLUE = 0, 0, 200
 # SELECTED_COLOR = 255, 255, 200
 SELECTED_COLOR = 220, 250, 250
 SELECTED_BORDER_COLOR = 0, 100, 255
+THERMO_COLOR = 150, 150, 150, 150
 
 NUM_KEYS = {
     pg.K_KP1: 1,
@@ -50,6 +51,8 @@ class GUI:
         self.grid.constraints.append(KropkiWhite(self.grid.getCell(0, 5), self.grid.getCell(1, 5)))
         self.grid.constraints.append(KropkiBlack(self.grid.getCell(2, 3), self.grid.getCell(2, 4)))
         self.grid.constraints.append(KropkiBlack(self.grid.getCell(2, 5), self.grid.getCell(3, 5)))
+        self.grid.constraints.append(Thermometer([self.grid.getCell(4, 4), self.grid.getCell(4, 5), self.grid.getCell(5, 6), self.grid.getCell(6, 6), self.grid.getCell(7, 5), self.grid.getCell(6, 5)]))
+        self.grid.constraints.append(Arrow([self.grid.getCell(4, 4), self.grid.getCell(4, 5), self.grid.getCell(5, 6), self.grid.getCell(6, 6), self.grid.getCell(7, 5), self.grid.getCell(6, 5)]))
         # self.grid._genFullRandomGrid()
         # self.grid.removeRandomCells(0.4)
     
@@ -212,25 +215,37 @@ class GUI:
         if isinstance(constraint, GeneralConstraint):
             return
         elif isinstance(constraint, Vsum):
-            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
-            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 18 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 18 + 10
             text = self.smallFont.render("V", True, BLACK, WHITE)
             textRect = text.get_rect()
             textRect.center = (x, y)
             self.screen.blit(text, textRect)
         elif isinstance(constraint, Xsum):
-            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
-            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 18 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 18 + 10
             text = self.smallFont.render("X", True, BLACK, WHITE)
             textRect = text.get_rect()
             textRect.center = (x, y)
             self.screen.blit(text, textRect)
         elif isinstance(constraint, KropkiWhite):
-            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
-            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 18 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 18 + 10
             pg.draw.circle(self.screen, BLACK, (x, y), 9)
             pg.draw.circle(self.screen, WHITE, (x, y), 7)
         elif isinstance(constraint, KropkiBlack):
-            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 2 / 9 + 10
-            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 2 / 9 + 10
+            x = (SIZE - 20) * (constraint.cellA.c + constraint.cellB.c + 1) / 18 + 10
+            y = (SIZE - 20) * (constraint.cellA.r + constraint.cellB.r + 1) / 18 + 10
             pg.draw.circle(self.screen, BLACK, (x, y), 8)
+        elif isinstance(constraint, Thermometer):
+            cell = constraint.cells[0]
+            x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
+            y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
+            pg.draw.circle(self.screen, THERMO_COLOR, (x, y), 15)
+            for nextCell in constraint.cells[1:]:
+                x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
+                y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
+                nx = (SIZE - 20) * nextCell.c / 9 + 10 + (SIZE - 20) / 18
+                ny = (SIZE - 20) * nextCell.r / 9 + 10 + (SIZE - 20) / 18
+                pg.draw.line(self.screen, THERMO_COLOR, (x, y), (nx, ny), 15)
+                cell = nextCell
