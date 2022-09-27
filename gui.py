@@ -13,8 +13,8 @@ BLUE = 0, 0, 200
 # SELECTED_COLOR = 255, 255, 200
 SELECTED_COLOR = 220, 250, 250
 SELECTED_BORDER_COLOR = 0, 100, 255
-THERMO_COLOR = 150, 150, 150, 150
-ARROW_COLOR = 50, 50, 50, 150
+THERMO_COLOR = 150, 150, 150
+ARROW_COLOR = 50, 50, 50
 
 NUM_KEYS = {
     pg.K_KP1: 1,
@@ -211,6 +211,16 @@ class GUI:
             pg.draw.line(self.screen, SELECTED_BORDER_COLOR, (x, y + s), (x + s, y + s), 10)
 
         pg.display.flip()
+
+    def drawRoundedLine(self, c, p1, p2, w):
+        p1v = pg.math.Vector2(p1)
+        p2v = pg.math.Vector2(p2)
+        lv = (p2v - p1v).normalize()
+        lnv = pg.math.Vector2(-lv.y, lv.x) * w / 2
+        pts = [p1v + lnv, p2v + lnv, p2v - lnv, p1v - lnv]
+        pg.draw.polygon(self.screen, c, pts)
+        pg.draw.circle(self.screen, c, p1, w / 2)
+        pg.draw.circle(self.screen, c, p2, w / 2)
     
     def renderConstraint(self, constraint):
         if isinstance(constraint, GeneralConstraint):
@@ -248,14 +258,14 @@ class GUI:
                 y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
                 nx = (SIZE - 20) * nextCell.c / 9 + 10 + (SIZE - 20) / 18
                 ny = (SIZE - 20) * nextCell.r / 9 + 10 + (SIZE - 20) / 18
-                pg.draw.line(self.screen, THERMO_COLOR, (x, y), (nx, ny), 15)
+                dx = nx - x
+                dy = ny - y
+                self.drawRoundedLine(THERMO_COLOR, (x, y), (nx, ny), 20)
                 cell = nextCell
         elif isinstance(constraint, Arrow):
             cell = constraint.cells[0]
-            x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
-            y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
-            pg.draw.circle(self.screen, ARROW_COLOR, (x, y), 26)
-            pg.draw.circle(self.screen, WHITE, (x, y), 24)
+            startX = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
+            startY = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
             for nextCell in constraint.cells[1:]:
                 x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
                 y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
@@ -263,7 +273,7 @@ class GUI:
                 ny = (SIZE - 20) * nextCell.r / 9 + 10 + (SIZE - 20) / 18
                 dx = nx - x
                 dy = ny - y
-                pg.draw.line(self.screen, ARROW_COLOR, (x, y), (nx, ny), 3)
+                self.drawRoundedLine(ARROW_COLOR, (x, y), (nx, ny), 3)
                 cell = nextCell
             dx = 0 if dx == 0 else 1 if dx > 0 else -1
             dy = 0 if dy == 0 else 1 if dy > 0 else -1
@@ -281,3 +291,5 @@ class GUI:
             dy = 15 * (-dy - dx) / abs(dy + dx)
             pg.draw.line(self.screen, ARROW_COLOR, (nx, ny), (nx + dx, ny + dy), 3)
             pg.draw.line(self.screen, ARROW_COLOR, (nx, ny), (nx + dy, ny - dx), 3)
+            pg.draw.circle(self.screen, ARROW_COLOR, (startX, startY), 27)
+            pg.draw.circle(self.screen, WHITE, (startX, startY), 24)
