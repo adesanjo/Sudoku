@@ -14,6 +14,7 @@ BLUE = 0, 0, 200
 SELECTED_COLOR = 220, 250, 250
 SELECTED_BORDER_COLOR = 0, 100, 255
 THERMO_COLOR = 150, 150, 150, 150
+ARROW_COLOR = 50, 50, 50, 150
 
 NUM_KEYS = {
     pg.K_KP1: 1,
@@ -52,7 +53,7 @@ class GUI:
         self.grid.constraints.append(KropkiBlack(self.grid.getCell(2, 3), self.grid.getCell(2, 4)))
         self.grid.constraints.append(KropkiBlack(self.grid.getCell(2, 5), self.grid.getCell(3, 5)))
         self.grid.constraints.append(Thermometer([self.grid.getCell(4, 4), self.grid.getCell(4, 5), self.grid.getCell(5, 6), self.grid.getCell(6, 6), self.grid.getCell(7, 5), self.grid.getCell(6, 5)]))
-        self.grid.constraints.append(Arrow([self.grid.getCell(4, 4), self.grid.getCell(4, 5), self.grid.getCell(5, 6), self.grid.getCell(6, 6), self.grid.getCell(7, 5), self.grid.getCell(6, 5)]))
+        self.grid.constraints.append(Arrow([self.grid.getCell(5, 5), self.grid.getCell(5, 6), self.grid.getCell(6, 7), self.grid.getCell(7, 7), self.grid.getCell(8, 6), self.grid.getCell(7, 6)]))
         # self.grid._genFullRandomGrid()
         # self.grid.removeRandomCells(0.4)
     
@@ -249,3 +250,18 @@ class GUI:
                 ny = (SIZE - 20) * nextCell.r / 9 + 10 + (SIZE - 20) / 18
                 pg.draw.line(self.screen, THERMO_COLOR, (x, y), (nx, ny), 15)
                 cell = nextCell
+        elif isinstance(constraint, Arrow):
+            cell = constraint.cells[0]
+            x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
+            y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
+            pg.draw.circle(self.screen, THERMO_COLOR, (x, y), 15)
+            for nextCell in constraint.cells[1:]:
+                x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
+                y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
+                nx = (SIZE - 20) * nextCell.c / 9 + 10 + (SIZE - 20) / 18
+                ny = (SIZE - 20) * nextCell.r / 9 + 10 + (SIZE - 20) / 18
+                dx = nx - x
+                dy = ny - y
+                pg.draw.line(self.screen, THERMO_COLOR, (x, y), (nx, ny), 15)
+                cell = nextCell
+            
