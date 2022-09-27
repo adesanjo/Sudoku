@@ -254,7 +254,8 @@ class GUI:
             cell = constraint.cells[0]
             x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
             y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
-            pg.draw.circle(self.screen, THERMO_COLOR, (x, y), 15)
+            pg.draw.circle(self.screen, ARROW_COLOR, (x, y), 17)
+            pg.draw.circle(self.screen, WHITE, (x, y), 15)
             for nextCell in constraint.cells[1:]:
                 x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
                 y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
@@ -262,6 +263,21 @@ class GUI:
                 ny = (SIZE - 20) * nextCell.r / 9 + 10 + (SIZE - 20) / 18
                 dx = nx - x
                 dy = ny - y
-                pg.draw.line(self.screen, THERMO_COLOR, (x, y), (nx, ny), 15)
+                pg.draw.line(self.screen, ARROW_COLOR, (x, y), (nx, ny), 3)
                 cell = nextCell
-            
+            dx = 0 if dx == 0 else 1 if dx > 0 else -1
+            dy = 0 if dy == 0 else 1 if dy > 0 else -1
+            """
+            -1, -1   ->    0,  1    1,  0
+            -1,  0   ->    1,  1    1, -1
+            -1,  1   ->    1,  0    0, -1
+             0,  1   ->    1, -1   -1, -1
+             1,  1   ->    0, -1   -1,  0
+             1,  0   ->   -1, -1   -1,  1
+             1, -1   ->   -1,  0    0,  1
+             0, -1   ->   -1,  1    1,  1
+            """
+            dx = 15 * (dy - dx) / abs(dy - dx)
+            dy = 15 * (-dy - dx) / abs(dy + dx)
+            pg.draw.line(self.screen, ARROW_COLOR, (nx, ny), (nx + dx, ny + dy), 3)
+            pg.draw.line(self.screen, ARROW_COLOR, (nx, ny), (nx + dy, ny - dx), 3)
