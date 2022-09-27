@@ -242,7 +242,7 @@ class GUI:
             cell = constraint.cells[0]
             x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
             y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
-            pg.draw.circle(self.screen, THERMO_COLOR, (x, y), 15)
+            pg.draw.circle(self.screen, THERMO_COLOR, (x, y), 25)
             for nextCell in constraint.cells[1:]:
                 x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
                 y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
@@ -254,8 +254,8 @@ class GUI:
             cell = constraint.cells[0]
             x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
             y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
-            pg.draw.circle(self.screen, ARROW_COLOR, (x, y), 17)
-            pg.draw.circle(self.screen, WHITE, (x, y), 15)
+            pg.draw.circle(self.screen, ARROW_COLOR, (x, y), 26)
+            pg.draw.circle(self.screen, WHITE, (x, y), 24)
             for nextCell in constraint.cells[1:]:
                 x = (SIZE - 20) * cell.c / 9 + 10 + (SIZE - 20) / 18
                 y = (SIZE - 20) * cell.r / 9 + 10 + (SIZE - 20) / 18
